@@ -339,12 +339,12 @@ Those who hold $KATZ control the transmission.`);
             if (keys['w'] && gameState.player.y > 10) gameState.player.y -= gameState.player.speed;
             if (keys['s'] && gameState.player.y < canvas.height - 20) gameState.player.y += gameState.player.speed;
             if (keys[' '] && gameState.frame % 10 === 0) {
-                gameState.bullets.push({ x: gameState.player.x + 25, y: gameState.player.y + 5 });
+                gameState.bullets.push({ x: gameState.player.x + 45, y: gameState.player.y - 4 });
             }
         } else {
             // Mobile Auto Shoot
             if (gameState.frame % 12 === 0) {
-                gameState.bullets.push({ x: gameState.player.x + 25, y: gameState.player.y + 5 });
+                gameState.bullets.push({ x: gameState.player.x + 45, y: gameState.player.y - 4 });
             }
         }
 
@@ -379,7 +379,7 @@ Those who hold $KATZ control the transmission.`);
         // 5. Boss AI Logic
         if (gameState.boss) {
             ctx.fillStyle = '#ff3333';
-            ctx.font = '20px Courier New';
+            ctx.font = '16px Courier New';
             ctx.fillText(`[MEGA_KOL_BOSS: ${gameState.boss.hp}/${gameState.boss.maxHp}]`, gameState.boss.x - 30, gameState.boss.y);
             
             gameState.boss.y += gameState.boss.dir * 2;
