@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DhE KaTz OS // v1.0.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DhE KaTz OS // v1.1.0 (Zero Wing Edition)</title>
     <style>
         body {
             background-color: #000000;
@@ -12,6 +12,7 @@
             padding: 20px;
             margin: 0;
             overflow-x: hidden;
+            user-select: none;
         }
 
         body::before {
@@ -20,7 +21,7 @@
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
+            z-index: 999;
             background-size: 100% 4px, 3px 100%;
             pointer-events: none;
         }
@@ -74,11 +75,34 @@
         .accent-green { color: #00ff33; }
         .accent-purple { color: #bc00dd; }
         .accent-red { color: #ff3333; }
+
+        /* Game Styles */
+        #gameContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        canvas {
+            border: 2px solid #00ff33;
+            background: #000000;
+            max-width: 100%;
+            box-shadow: 0 0 15px rgba(0, 255, 51, 0.3);
+        }
+
+        .game-controls-hint {
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+            color: #bc00dd;
+        }
     </style>
 </head>
 <body>
 
-<div class="terminal-container">
+<div class="terminal-container" id="terminalView">
     <pre>
   ______  __       _______      ___   ___   ___  __________  _______  
  /_  __/ / /      / ___  /     /  /  /  /  /  / /___   ___/ / _____/  
@@ -92,27 +116,50 @@
         [ NODES LOADING: ████████░░░░░░░░░░ 42% ] [ TICKER: $KATZ ]
     </div>
 
-    <div class="output-log" id="log">Welcome to DhE KaTz Control Terminal v1.0.1.
+    <div class="output-log" id="log">Welcome to DhE KaTz Control Terminal v1.1.0.
 Type '<span class="accent-green">help</span>' to initialize system controls.
 
 </div>
 
-    <div class="input-line">
+    <div class="input-line" id="inputWrapper">
         <span class="prompt">DhE_KaTz_OS_></span>
         <input type="text" id="commandInput" autofocus autocomplete="off" spellcheck="false">
     </div>
 </div>
 
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="600" height="350"></canvas>
+    <div class="game-controls-hint" id="controlsHint"></div>
+</div>
+
 <script>
     const commandInput = document.getElementById('commandInput');
     const log = document.getElementById('log');
+    const terminalView = document.getElementById('terminalView');
+    const gameContainer = document.getElementById('gameContainer');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const controlsHint = document.getElementById('controlsHint');
+    const inputWrapper = document.getElementById('inputWrapper');
 
-    document.addEventListener('click', () => commandInput.focus());
+    let gameInterval;
+    let gameState = {};
+    let currentMode = 'terminal'; // terminal, intro, select_device, playing, gameover
+
+    document.addEventListener('click', () => {
+        if (currentMode === 'terminal') commandInput.focus();
+    });
 
     commandInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             const command = this.value.trim().toLowerCase();
-            processCommand(command);
+            if (currentMode === 'terminal') {
+                processCommand(command);
+            } else if (currentMode === 'select_device') {
+                if (command === '1') { startGame('mobile'); }
+                else if (command === '2') { startGame('pc'); }
+                else { printToLog("<span class='accent-red'>Invalid choice. Type 1 or 2.</span>"); }
+            }
             this.value = '';
         }
     });
@@ -133,7 +180,7 @@ Type '<span class="accent-green">help</span>' to initialize system controls.
   <span class="accent-green">contract</span>  - Reveal $KATZ memecoin contract address.
   <span class="accent-green">social</span>    - Extract external communication frequencies.
   <span class="accent-green">infect</span>    - Launch acquisition protocol (Pump.fun/Raydium).
-  <span class="accent-green">play</span>      - Initialize 16-bit gaming module (Coming Soon).
+  <span class="accent-green">play</span>      - Initialize 16-bit Zero Wing gaming module.
   <span class="accent-green">clear</span>     - Purge the terminal screen.`);
                 break;
 
@@ -147,35 +194,26 @@ Those who hold $KATZ control the transmission.`);
             case 'nodes':
                 printToLog(`[ SCANNING NETWORK... ]
   Node 01: VERIFIED [ONLINE]
-  Node 02: VERIFIED [ONLINE]
-  Node 03: VERIFIED [ONLINE]
   ... Network secured. 10 elite nodes are validating the $KATZ transmission.`);
                 break;
 
             case 'contract':
                 printToLog(`[ TOKEN CONTRACT ADDRESS ]
-  <span class="accent-red">COMING SOON</span>
-  The contract will be injected into the Solana blockchain once the status bar is fully loaded.`);
+  <span class="accent-red">COMING SOON</span>`);
                 break;
 
             case 'social':
                 printToLog(`[ ACTIVE FREQUENCIES ]
-  X (Twitter): <a href="https://x.com" target="_blank" style="color: #00ff33;">Open X Channel</a>
-  Telegram:    <span class="accent-red">[ENCRYPTED - COMING SOON]</span>`);
+  X (Twitter): <a href="https://x.com" target="_blank" style="color: #00ff33;">Open X Channel</a>`);
                 break;
 
             case 'infect':
-                printToLog(`[ REDIRECTING PAYLOAD... ]
-Launching payload injection into your Solana wallet. Plant the $KATZ seed.`);
-                setTimeout(() => {
-                    window.open('https://pump.fun', '_blank');
-                }, 1000);
+                printToLog(`[ REDIRECTING PAYLOAD... ]`);
+                setTimeout(() => window.open('https://pump.fun', '_blank'), 1000);
                 break;
 
             case 'play':
-                printToLog(`[ ERROR: RIGID ARCHITECTURE ]
-The gaming module requires more active nodes on the grid. 
-Hold your tokens. The gaming firewall will be breached shortly.`);
+                runZeroWingIntro();
                 break;
 
             case 'clear':
@@ -186,8 +224,280 @@ Hold your tokens. The gaming firewall will be breached shortly.`);
                 break;
 
             default:
-                printToLog(`Unknown command: '${cmd}'. Type '<span class="accent-green">help</span>' for the node list.`);
+                printToLog(`Unknown command: '${cmd}'. Type '<span class="accent-green">help</span>'.`);
         }
+    }
+
+    /* ZERO WING MODULE */
+    function runZeroWingIntro() {
+        currentMode = 'intro';
+        inputWrapper.style.display = 'none';
+        log.innerHTML = "[ INITIATING EMULATION LAYER... ]\n\n";
+        
+        const lines = [
+            "In A.D. 2026, the crypto market was dying.",
+            "KOLs: All your liquidity are belong to us.",
+            "KOLs: You have no chance to survive make your time.",
+            "DhE KaTz: What happen !!",
+            "Elite Node: Somebody set up us the retail-slop.",
+            "DhE KaTz: Main turn-on! Launch all $KATZ !!"
+        ];
+
+        let i = 0;
+        function printLines() {
+            if (i < lines.length) {
+                log.innerHTML += `<span class="accent-red">${lines[i]}</span>\n`;
+                i++;
+                setTimeout(printLines, 1500);
+            } else {
+                askDevice();
+            }
+        }
+        printLines();
+    }
+
+    function askDevice() {
+        currentMode = 'select_device';
+        inputWrapper.style.display = 'flex';
+        printToLog(`\nSelect your Battle Interface:
+  [1] MOBILE (Drag finger to fly & shoot)
+  [2] PC / KEYBOARD (W/S to move, SPACE to shoot)`);
+    }
+
+    function startGame(device) {
+        currentMode = 'playing';
+        terminalView.style.display = 'none';
+        gameContainer.style.display = 'flex';
+
+        if (device === 'mobile') {
+            controlsHint.innerText = "Touch & Drag anywhere on canvas to move. Shooting is automatic!";
+            initMobileControls();
+        } else {
+            controlsHint.innerText = "Controls: W (Up) / S (Down) | SPACEBAR (Shoot)";
+            initPCControls();
+        }
+
+        // Init State
+        gameState = {
+            device: device,
+            player: { x: 50, y: 175, speed: 5, size: 20, score: 0, lives: 3 },
+            bullets: [],
+            enemies: [],
+            enemyBullets: [],
+            stars: [],
+            level: 1,
+            boss: null,
+            kills: 0,
+            frame: 0
+        };
+
+        // Create initial background stars
+        for (let i = 0; i < 40; i++) {
+            gameState.stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
+        }
+
+        gameInterval = setInterval(gameLoop, 1000 / 60);
+    }
+
+    // Controls Handling
+    let keys = {};
+    function initPCControls() {
+        window.addEventListener('keydown', e => { if([32, 38, 40].indexOf(e.keyCode) > -1) e.preventDefault(); keys[e.key.toLowerCase()] = true; });
+        window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+    }
+
+    function initMobileControls() {
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            gameState.player.y = ((touch.clientY - rect.top) / rect.height) * canvas.height;
+            gameState.player.x = ((touch.clientX - rect.left) / rect.width) * canvas.width;
+            
+            // Boundary constraints
+            if(gameState.player.y < 10) gameState.player.y = 10;
+            if(gameState.player.y > canvas.height - 10) gameState.player.y = canvas.height - 10;
+            if(gameState.player.x < 10) gameState.player.x = 10;
+            if(gameState.player.x > canvas.width / 2) gameState.player.x = canvas.width / 2; // Limit forward movement
+        }, { passive: false });
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        gameState.frame++;
+
+        // 1. Draw Background Stars
+        ctx.fillStyle = '#ffffff';
+        gameState.stars.forEach(star => {
+            star.x -= star.speed * (gameState.level * 0.7);
+            if (star.x < 0) star.x = canvas.width;
+            ctx.fillRect(star.x, star.y, 2, 2);
+        });
+
+        // 2. Handle Inputs (PC)
+        if (gameState.device === 'pc') {
+            if (keys['w'] && gameState.player.y > 10) gameState.player.y -= gameState.player.speed;
+            if (keys['s'] && gameState.player.y < canvas.height - 20) gameState.player.y += gameState.player.speed;
+            if (keys[' '] && gameState.frame % 10 === 0) {
+                gameState.bullets.push({ x: gameState.player.x + 25, y: gameState.player.y + 5 });
+            }
+        } else {
+            // Mobile Auto Shoot
+            if (gameState.frame % 12 === 0) {
+                gameState.bullets.push({ x: gameState.player.x + 25, y: gameState.player.y + 5 });
+            }
+        }
+
+        // 3. Draw Player Navicella (ZIG-$KATZ)
+        ctx.fillStyle = '#00ff33';
+        ctx.font = '14px Courier New';
+        ctx.fillText("=^._.^=>", gameState.player.x, gameState.player.y);
+
+        // 4. Game Progression & Spawning (Levels 1-5)
+        if (gameState.level < 5) {
+            // Level change math
+            gameState.level = Math.min(4, Math.floor(gameState.kills / 10) + 1);
+            
+            // Spawn normal enemies
+            let spawnRate = Math.max(20, 60 - (gameState.level * 10));
+            if (gameState.frame % spawnRate === 0) {
+                const types = ['KOL', 'SLOP', 'FOMO', 'FUD'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                gameState.enemies.push({
+                    x: canvas.width,
+                    y: Math.random() * (canvas.height - 40) + 20,
+                    type: type,
+                    speed: Math.random() * 2 + gameState.level,
+                    hp: gameState.level
+                });
+            }
+        } else if (gameState.level === 5 && !gameState.boss) {
+            // Spawn Level 5 Boss
+            gameState.boss = { x: canvas.width - 100, y: 150, dir: 1, hp: 50, maxHp: 50 };
+        }
+
+        // 5. Boss AI Logic
+        if (gameState.boss) {
+            ctx.fillStyle = '#ff3333';
+            ctx.font = '20px Courier New';
+            ctx.fillText(`[MEGA_KOL_BOSS: ${gameState.boss.hp}/${gameState.boss.maxHp}]`, gameState.boss.x - 30, gameState.boss.y);
+            
+            gameState.boss.y += gameState.boss.dir * 2;
+            if (gameState.boss.y > canvas.height - 40 || gameState.boss.y < 40) gameState.boss.dir *= -1;
+
+            if (gameState.frame % 30 === 0) {
+                gameState.enemyBullets.push({ x: gameState.boss.x, y: gameState.boss.y, speed: 5 });
+            }
+        }
+
+        // 6. Update Bullets
+        ctx.fillStyle = '#00ff33';
+        gameState.bullets.forEach((b, bIdx) => {
+            b.x += 7;
+            ctx.fillRect(b.x, b.y, 8, 2);
+            if (b.x > canvas.width) gameState.bullets.splice(bIdx, 1);
+        });
+
+        // 7. Update Enemies & Enemy Bullets
+        gameState.enemies.forEach((e, eIdx) => {
+            e.x -= e.speed;
+            ctx.fillStyle = '#bc00dd';
+            ctx.font = '12px Courier New';
+            ctx.fillText(`[${e.type}]`, e.x, e.y);
+
+            // Enemy Shooting at higher levels
+            if (gameState.level > 2 && gameState.frame % 120 === 0 && Math.random() > 0.5) {
+                gameState.enemyBullets.push({ x: e.x, y: e.y, speed: e.speed + 1 });
+            }
+
+            // Collision with player
+            if (e.x < gameState.player.x + 40 && e.x > gameState.player.x && e.y > gameState.player.y - 15 && e.y < gameState.player.y + 15) {
+                gameState.enemies.splice(eIdx, 1);
+                playerHit();
+            }
+
+            if (e.x < 0) gameState.enemies.splice(eIdx, 1);
+        });
+
+        // Update Enemy Bullets
+        ctx.fillStyle = '#ff3333';
+        gameState.enemyBullets.forEach((eb, ebIdx) => {
+            eb.x -= eb.speed ? eb.speed : 4;
+            ctx.fillText("•", eb.x, eb.y);
+
+            // Collision with player
+            if (eb.x < gameState.player.x + 45 && eb.x > gameState.player.x && eb.y > gameState.player.y - 15 && eb.y < gameState.player.y + 15) {
+                gameState.enemyBullets.splice(ebIdx, 1);
+                playerHit();
+            }
+            if (eb.x < 0) gameState.enemyBullets.splice(ebIdx, 1);
+        });
+
+        // 8. Bullet-Enemy Collision Check
+        gameState.bullets.forEach((b, bIdx) => {
+            gameState.enemies.forEach((e, eIdx) => {
+                if (b.x > e.x && b.x < e.x + 40 && b.y > e.y - 15 && b.y < e.y + 5) {
+                    e.hp--;
+                    gameState.bullets.splice(bIdx, 1);
+                    if (e.hp <= 0) {
+                        gameState.enemies.splice(eIdx, 1);
+                        gameState.player.score += 100 * gameState.level;
+                        gameState.kills++;
+                        if (gameState.kills === 40) gameState.level = 5; // Trigger Boss
+                    }
+                }
+            });
+
+            if (gameState.boss && b.x > gameState.boss.x && b.y > gameState.boss.y - 20 && b.y < gameState.boss.y + 10) {
+                gameState.boss.hp--;
+                gameState.bullets.splice(bIdx, 1);
+                if (gameState.boss.hp <= 0) {
+                    gameState.player.score += 5000;
+                    endGame(true);
+                }
+            }
+        });
+
+        // 9. HUD Overlay
+        ctx.fillStyle = '#00ff33';
+        ctx.font = '12px Courier New';
+        ctx.fillText(`LIQUIDITY SAVED: ${gameState.player.score}`, 10, 20);
+        ctx.fillText(`GRID STAGE: ${gameState.level}/5`, 250, 20);
+        ctx.fillText(`NODES: ${"🐾".repeat(gameState.player.lives)}`, 480, 20);
+    }
+
+    function playerHit() {
+        gameState.player.lives--;
+        if (gameState.player.lives <= 0) {
+            endGame(false);
+        }
+    }
+
+    function endGame(victory) {
+        clearInterval(gameInterval);
+        currentMode = 'gameover';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = victory ? '#00ff33' : '#ff3333';
+        ctx.font = '24px Courier New';
+        const msg = victory ? "SYSTEM CLEANSED - VICTORY" : "GAME OVER - DEFRAUDED BY KOLS";
+        ctx.fillText(msg, 70, 150);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Courier New';
+        ctx.fillText(`Final Score: ${gameState.player.score}`, 200, 200);
+        
+        ctx.fillStyle = '#bc00dd';
+        ctx.fillText("Click here to exit back to Terminal", 130, 260);
+
+        canvas.onclick = () => {
+            canvas.onclick = null;
+            gameContainer.style.display = 'none';
+            terminalView.style.display = 'block';
+            inputWrapper.style.display = 'flex';
+            currentMode = 'terminal';
+            printToLog(`[ SIMULATION TERMINATED ]\nYou saved ${gameState.player.score} in liquidity. Type 'play' to restart grid warfare.`);
+        };
     }
 </script>
 
