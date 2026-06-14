@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DhE KaTz OS // v1.0.1</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #00ff33;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .terminal-container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        pre {
+            font-size: 12px;
+            line-height: 1.2;
+            color: #bc00dd;
+        }
+
+        .status-bar {
+            border-top: 1px dashed #00ff33;
+            border-bottom: 1px dashed #00ff33;
+            padding: 10px 0;
+            margin: 20px 0;
+        }
+
+        .output-log {
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .prompt {
+            color: #00ff33;
+            margin-right: 10px;
+        }
+
+        input[type="text"] {
+            background: transparent;
+            border: none;
+            color: #00ff33;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+        }
+
+        .accent-green { color: #00ff33; }
+        .accent-purple { color: #bc00dd; }
+        .accent-red { color: #ff3333; }
+    </style>
+</head>
+<body>
+
+<div class="terminal-container">
+    <pre>
+  ______  __       _______      ___   ___   ___  __________  _______  
+ /_  __/ / /      / ___  /     /  /  /  /  /  / /___   ___/ / _____/  
+  / /   / /_     / /__/ /     /  /__/  /  /  /     /  /    / /____    
+ /_/   /___/    /_/  /_/     /________/  /_/      /_/     /______/    
+                                                                      
+    </pre>
+
+    <div class="status-bar">
+        [ SYSTEM STATUS: INFECTION SPREADING ] [ TIMELINE: JUN 2026 ]<br>
+        [ NODES LOADING: ████████░░░░░░░░░░ 42% ] [ TICKER: $KATZ ]
+    </div>
+
+    <div class="output-log" id="log">Benvenuto nel Terminale di Controllo DhE KaTz v1.0.1.
+Digita '<span class="accent-green">help</span>' per inizializzare i controlli di sistema.
+
+</div>
+
+    <div class="input-line">
+        <span class="prompt">DhE_KaTz_OS_></span>
+        <input type="text" id="commandInput" autofocus autocomplete="off" spellcheck="false">
+    </div>
+</div>
+
+<script>
+    const commandInput = document.getElementById('commandInput');
+    const log = document.getElementById('log');
+
+    document.addEventListener('click', () => commandInput.focus());
+
+    commandInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const command = this.value.trim().toLowerCase();
+            processCommand(command);
+            this.value = '';
+        }
+    });
+
+    function printToLog(text) {
+        log.innerHTML += text + "\n\n";
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function processCommand(cmd) {
+        log.innerHTML += `<span class="accent-purple">DhE_KaTz_OS_> ${cmd}</span>\n`;
+
+        switch(cmd) {
+            case 'help':
+                printToLog(`Comandi disponibili per la griglia:
+  <span class="accent-green">catz</span>      - Mostra il manifesto segreto dell'infezione.
+  <span class="accent-green">nodes</span>     - Esegue la scansione dei nodi verificati attivi.
+  <span class="accent-green">contract</span>  - Mostra l'indirizzo della memecoin $KATZ.
+  <span class="accent-green">social</span>    - Estrae le frequenze di comunicazione esterne.
+  <span class="accent-green">infect</span>    - Avvia il protocollo d'acquisto (Link a Pump.fun/Raydium).
+  <span class="accent-green">play</span>      - Inizializza il modulo di gioco 16-bit (Coming Soon).
+  <span class="accent-green">clear</span>     - Ripulisce la schermata del terminale.`);
+                break;
+
+            case 'catz':
+                printToLog(`[ MANIFESTO DhE KaTz ]
+Il malware a 16-bit sta divorando i firewall della finanza tradizionale. 
+Non siamo qui per seguire le regole della griglia. Siamo qui per infettarla.
+Chi detiene $KATZ controlla la trasmissione.`);
+                break;
+
+            case 'nodes':
+                printToLog(`[ SCANSIONE IN CORSO... ]
+  Nodo 01: VERIFICATO [ONLINE]
+  Nodo 02: VERIFICATO [ONLINE]
+  Nodo 03: VERIFICATO [ONLINE]
+  ... Rete protetta. 10 nodi d'élite stanno validando la trasmissione di $KATZ.`);
+                break;
+
+            case 'contract':
+                printToLog(`[ TOKEN CONTRACT ADDRESS ]
+  <span class="accent-red">COMING SOON</span>
+  Il contratto verrà iniettato sulla blockchain di Solana al riempimento della barra di stato.`);
+                break;
+
+            case 'social':
+                printToLog(`[ FREQUENZE ATTIVE ]
+  X (Twitter): <a href="https://x.com" target="_blank" style="color: #00ff33;">Apri Canale X</a>
+  Telegram:    <span class="accent-red">[CRITTOGRAFATO - PROSSIMAMENTE]</span>`);
+                break;
+
+            case 'infect':
+                printToLog(`[ REINDIRIZZAMENTO IN CORSO... ]
+Iniezione del payload nel wallet di Solana lanciata. Pianta il seme di $KATZ.`);
+                setTimeout(() => {
+                    window.open('https://pump.fun', '_blank');
+                }, 1000);
+                break;
+
+            case 'play':
+                printToLog(`[ ERROR: ARCHITETTURA RIGIDA ]
+Il modulo di gioco richiede un numero maggiore di nodi attivi sulla griglia. 
+Mantieni l'hold dei tuoi token. Il firewall di gioco verrà rimosso a breve.`);
+                break;
+
+            case 'clear':
+                log.innerHTML = '';
+                break;
+
+            case '':
+                break;
+
+            default:
+                printToLog(`Comando sconosciuto: '${cmd}'. Digita '<span class="accent-green">help</span>' per la lista dei nodi.`);
+        }
+    }
+</script>
+
+</body>
+</html>
